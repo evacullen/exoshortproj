@@ -109,24 +109,51 @@ def verify_plate_solution(wcs, config):
         print(f"Plate solution verification failed: {str(e)}")
 
 def plot_lightcurve(times, fluxes, config):
-    """Plot and save the time-series light curve."""
+    """Plot and save the time-series light curve with binned averages."""
     plt.figure(figsize=(12, 6))
     
-    # convert times to hours from first observation
+    # Convert times to hours from first observation
     time_offset = np.min(times)
     hours = (times - time_offset) * 24
     
-    plt.plot(hours, fluxes, 'bo', alpha=0.7)
+    # Plot individual measurements
+    plt.plot(hours, fluxes, 'bo', alpha=0.3, label='Individual measurements')
     
-    # formatting
+    # Add binned averages with error bars
+    bin_width = 0.02  # hours - adjust this based on exposure time and cadence
+    bins = np.arange(np.min(hours), np.max(hours) + bin_width, bin_width)
+    
+    bin_centers = []
+    bin_means = []
+    bin_errors = []
+    
+    for i in range(len(bins)-1):
+        mask = (hours >= bins[i]) & (hours < bins[i+1])
+        if np.sum(mask) > 0:
+            bin_fluxes = fluxes[mask]
+            bin_centers.append((bins[i] + bins[i+1])/2)
+            bin_means.append(np.mean(bin_fluxes))
+            bin_errors.append(np.std(bin_fluxes)/np.sqrt(len(bin_fluxes)))  # Standard error
+            
+    plt.errorbar(bin_centers, bin_means, yerr=bin_errors, 
+                fmt='r-', ecolor='darkred', elinewidth=2, capsize=3,
+                label=f'{bin_width} hr binned average')
+    
+    # Formatting
     plt.title(f"{config['planetary_parameters']['Planet Name']} Light Curve")
     plt.xlabel('Hours from First Observation')
     plt.ylabel('Normalized Flux')
     plt.grid(True, alpha=0.3)
+    plt.legend()
     
-    # save plot
+    # Add expected transit duration shading
+    transit_duration = 1.6  # Hours - adjust this based on transit duration
+    plt.axvspan(-transit_duration/2, transit_duration/2, 
+                color='gray', alpha=0.2, label='Expected transit window')
+    
+    # Save plot
     output_path = os.path.join(config["user_info"]["Directory to Save Plots"], 
-                               "lightcurve.png")
+                             "lightcurve.png")
     plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
