@@ -76,12 +76,16 @@ def solve_astrometry(filename):
             filename,
             publicly_visible="n",
             allow_commercial_use="n",
-            solve_timeout=300
+            solve_timeout=300,
+            scale_units='arcsecperpix',  # Add if you know the scale
+            scale_type='ev',              # Estimate bounds
+            scale_est=0.384,                # Example: 0.5"/pixel
+            scale_err=20                   # 20% uncertainty
         )
-        if wcs_header is not None:
+        if wcs_header:
             return WCS(wcs_header)
     except Exception as e:
-        print(f"Astrometry failed for {filename}: {e}")
+        print(f"Astrometry failed: {e}")
         return None
     
 from astropy.coordinates import SkyCoord
@@ -167,27 +171,42 @@ def process_images(config):
         with fits.open(file) as hdul:
             data = hdul[0].data
             header = hdul[0].header
-            
-        # solve astrometry & verify plate solution if required
-        if config["user_info"]["Plate Solution? (y/n)"] == "y":
-            wcs = solve_astrometry(file)
-            if wcs:
-                verify_plate_solution(wcs, config)
 
-        # get observation time
+        # ---> ADDED: Extract observation time <---
         try:
             jd_time = Time(header['DATE-OBS'], format='isot').jd
         except KeyError:
             print(f"Missing DATE-OBS keyword in {file}; skipping this file.")
             continue
 
+        # Get WCS and update target position
+        wcs = None
+        current_target_pos = config["user_info"]["Target Star X & Y Pixel"]  # Default
+        if config["user_info"]["Plate Solution? (y/n)"] == "y":
+            wcs = solve_astrometry(file)
+            if wcs and wcs.is_celestial:
+                try:
+                    ra = config["planetary_parameters"]["Target Star RA"]
+                    dec = config["planetary_parameters"]["Target Star Dec"]
+                    coord = SkyCoord(ra, dec, unit=(u.hourangle, u.deg))
+                    target_x, target_y = wcs.all_world2pix(coord.ra.deg, coord.dec.deg, 0)
+                    current_target_pos = [target_x, target_y]
+                    # Verify offset from user's expected position
+                    expected_x, expected_y = config["user_info"]["Target Star X & Y Pixel"]
+                    offset = np.hypot(target_x - expected_x, target_y - expected_y)
+                    if offset > 10:  # Alert if large discrepancy
+                        print(f"WARNING: {file} target offset {offset:.1f} pixels")
+                except Exception as e:
+                    print(f"WCS conversion failed: {e}")
+                    current_target_pos = config["user_info"]["Target Star X & Y Pixel"]
+
         # perform photometry
-        target_flux = measure_flux_pixel(data, target_pos)
+        target_flux = measure_flux_pixel(data, current_target_pos)
         comp_fluxes = [measure_flux_pixel(data, pos) for pos in comp_positions]
         
         if target_flux and all(comp_fluxes):
             norm_flux = target_flux / np.sum(comp_fluxes)
-            times.append(jd_time)
+            times.append(jd_time)  # <--- NOW jd_time IS DEFINED
             fluxes.append(norm_flux)
 
     # convert to arrays
