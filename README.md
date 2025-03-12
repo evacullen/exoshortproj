@@ -7,4 +7,6 @@ IMPORTANT:
 
 - In solve_astrometry replace 'ast.api_key' with your API key from nova.astrometry.net (or use mine, it's fine)
 
+ALSO MAKE SURE TO: 
+- Clean 'output' and 'fits_files' folder prior to use
 For any other issues email ecc2205@columbia.edu or text me.
