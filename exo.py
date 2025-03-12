@@ -19,22 +19,25 @@ from glob import glob
 # PLACE ALL FITS FILES DIRECTLY IN "fits_files" FOLDER. COPY THE PATH TO THIS FOLDER. 
 # load your configuration
 config = {
-    "planetary_parameters": { # all parameters need to be updated for TOI. can someone get this info? 
-        "Planet Name": "WASP-43 b", 
-        "Target Star RA": "10:19:37.964856",
-        "Target Star Dec": "-09:48:23.19516",
-        "Published Mid-Transit Time (BJD-UTC)": 2457202.184881,
-        "Orbital Period (days)": 0.81347406,
-        },
+    "planetary_parameters": {
+        "Planet Name": "TIC 46432937 b",
+        "Target Star RA": "05:35:28.56",
+        "Target Star Dec": "-14:35:49.89",
+        "Published Mid-Transit Time (BJD-UTC)": 10744.5338,
+        "Orbital Period (days)": 1.44,
+    },
     "user_info": {
-        "Directory with FITS files": r"C:\Users\evacc\Downloads\exoshortproj", #IMPORTANT: replace with the path to the fits_files folder
+        "Directory with FITS files": r"C:\Users\evacc\Downloads\exoshortproj\fits_files", #IMPORTANT: replace with the path to the fits_files folder
         "Directory to Save Plots": r"C:\Users\evacc\Downloads\exoshortproj\output", # replace with the path to the output folder
-        "Target Star X & Y Pixel": [1000, 408], #also needs to be updated for TOI.
-        "Comparison Star(s) X & Y Pixel": [[530, 10], [900, 200]], #also also needs to be updated for TOI.
+        "Target Star X & Y Pixel": [1026.80, 988.89], #updated.
+        "Comparison Star(s) X & Y Pixel": [
+            [1826.73, 1635.27],  #  Star 1
+            [1576.36, 1506.55],  #  Star 2
+            [1518.16, 1239.44]   #  Star 10
+        ], #updated?
         "Plate Solution? (y/n)": "y"
     }
 }
-
 # photometry parameters
 APERTURE_RADIUS = 5.0  # start with this, adjust based on FWHM, may need to be made smaller/larger depending on seeing conditions
 ANNULUS_RADII = (8.0, 12.0)
@@ -73,8 +76,7 @@ def solve_astrometry(filename):
             filename,
             publicly_visible="n",
             allow_commercial_use="n",
-            solve_timeout=300,
-            force_image_upload=True 
+            solve_timeout=300
         )
         if wcs_header is not None:
             return WCS(wcs_header)
@@ -88,21 +90,15 @@ from astropy import units as u
 def verify_plate_solution(wcs, config):
     """Verify WCS solution matches expected target coordinates."""
     try:
-        # convert target RA/Dec to pixels using WCS
         ra = config["planetary_parameters"]["Target Star RA"]
         dec = config["planetary_parameters"]["Target Star Dec"]
         
-        # if RA/Dec are in sexagesimal format, you may need to parse them with SkyCoord (we need this for anything not in angular i.e. h:m:s...)
         coord = SkyCoord(ra, dec, unit=(u.hourangle, u.deg))
         calc_x, calc_y = wcs.all_world2pix(coord.ra.deg, coord.dec.deg, 0)
         
-        calc_x, calc_y = wcs.all_world2pix(ra, dec, 0)
-        
-        # compare with user-provided coordinates
         expected_x, expected_y = config["user_info"]["Target Star X & Y Pixel"]
         offset = np.sqrt((calc_x - expected_x)**2 + (calc_y - expected_y)**2)
         
-        # print warning if offset is above tolerance
         if offset > 3:
             print(f"WARNING: Plate solution offset: {offset:.2f} pixels")
     except Exception as e:
