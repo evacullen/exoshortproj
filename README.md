@@ -1,6 +1,3 @@
-HOW TO GET THIS TO WORK:
-Download and open with VScode on Anaconda environment.
-
 IMPORTANT:
 - Put ALL FITS files into 'fits_files' and COPY YOUR PATH for "Directory with FITS files" in config.
 - Copy path to 'output' for "Directory to Save Plots" in config.
