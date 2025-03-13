@@ -153,6 +153,7 @@ def plot_lightcurve(times, fluxes, config):
                              "lightcurve.png")
     plt.savefig(output_path, bbox_inches='tight')
     plt.close()
+    return bin_centers, bin_means
 
 def plot_phased_lightcurve(times, fluxes, config):
     """Plot and save the phased light curve."""
@@ -238,13 +239,15 @@ def process_images(config):
     fluxes = np.array(fluxes)
     
     # generate and save plots
-    plot_lightcurve(times, fluxes, config)
+    bin_centers, bin_means = plot_lightcurve(times, fluxes, config)
     plot_phased_lightcurve(times, fluxes, config)
     
-    return times, fluxes
+    return times, fluxes, bin_centers, bin_means
 
 if __name__ == "__main__":
-    times, fluxes = process_images(config)
+    times, fluxes, bin_centers, bin_means = process_images(config)
     print("Times:", times)
     print("Fluxes:", fluxes)
-    print("Avg Flux per 0.2h", )
+    print("Avg Flux per 0.02h:")
+    for center, mean in zip(bin_centers, bin_means):
+        print(f"  Hour {center:.2f}: {mean:.4f}")
