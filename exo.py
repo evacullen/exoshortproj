@@ -145,7 +145,7 @@ def plot_lightcurve(times, fluxes, config):
     plt.xlabel('Hours from First Observation')
     plt.ylabel('Normalized Flux')
     plt.xlim(0, 1.28)
-    plt.ylim(-20, 20)
+    plt.ylim(-40, 40)
     plt.grid(True, alpha=0.3)
     plt.legend()
     
