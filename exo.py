@@ -136,20 +136,17 @@ def plot_lightcurve(times, fluxes, config):
             bin_errors.append(np.std(bin_fluxes)/np.sqrt(len(bin_fluxes)))  # Standard error
             
     plt.errorbar(bin_centers, bin_means, yerr=bin_errors, 
-                fmt='r-', ecolor='darkred', elinewidth=2, capsize=3,
-                label=f'{bin_width} hr binned average')
+            fmt='-', color='blue', ecolor='blue',  # Changed here
+            elinewidth=0.5, capsize=3,
+            label=f'{bin_width} hr binned average')
     
     # Formatting
     plt.title(f"{config['planetary_parameters']['Planet Name']} Light Curve")
     plt.xlabel('Hours from First Observation')
     plt.ylabel('Normalized Flux')
+    plt.xlim(0, 1.6)
     plt.grid(True, alpha=0.3)
     plt.legend()
-    
-    # Add expected transit duration shading
-    transit_duration = 1.6  # Hours - adjust this based on transit duration
-    plt.axvspan(-transit_duration/2, transit_duration/2, 
-                color='gray', alpha=0.2, label='Expected transit window')
     
     # Save plot
     output_path = os.path.join(config["user_info"]["Directory to Save Plots"], 
@@ -169,7 +166,7 @@ def plot_phased_lightcurve(times, fluxes, config):
     plt.plot(phased_times, fluxes, 'bo', alpha=0.7)
     plt.xlabel('Phase')
     plt.ylabel('Normalized Flux')
-    plt.title('WASP-43 b Phased Light Curve')
+    plt.title('TIC 46432937 b Phased Light Curve')
     plt.grid(True)
     
     output_path = os.path.join(config["user_info"]["Directory to Save Plots"], 
@@ -250,3 +247,4 @@ if __name__ == "__main__":
     times, fluxes = process_images(config)
     print("Times:", times)
     print("Fluxes:", fluxes)
+    print("Avg Flux per 0.2h", )
