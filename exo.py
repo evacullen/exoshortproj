@@ -144,7 +144,8 @@ def plot_lightcurve(times, fluxes, config):
     plt.title(f"{config['planetary_parameters']['Planet Name']} Light Curve")
     plt.xlabel('Hours from First Observation')
     plt.ylabel('Normalized Flux')
-    plt.xlim(0, 1.6)
+    plt.xlim(0, 1.28)
+    plt.ylim(-20, 20)
     plt.grid(True, alpha=0.3)
     plt.legend()
     
