@@ -17,7 +17,7 @@ from glob import glob
 # pip install astroquery
 
 # PLACE ALL FITS FILES DIRECTLY IN "fits_files" FOLDER. COPY THE PATH TO THIS FOLDER. 
-# load your configuration
+# load your configuration (EDIT FOR MDM)
 config = {
     "planetary_parameters": {
         "Planet Name": "TIC 46432937 b",
@@ -34,13 +34,13 @@ config = {
             [1826.73, 1635.27],  #  Star 1
             [1576.36, 1506.55],  #  Star 2
             [1518.16, 1239.44]   #  Star 10
-        ], #updated?
+        ], #UPDATE FOR MDM
         "Plate Solution? (y/n)": "y"
     }
 }
 # photometry parameters
 APERTURE_RADIUS = 5.0  # start with this, adjust based on FWHM, may need to be made smaller/larger depending on seeing conditions
-ANNULUS_RADII = (8.0, 12.0)
+ANNULUS_RADII = (8.0, 12.0) # EDIT FOR MDM
 
 def measure_flux_pixel(data, position):
     aperture = CircularAperture(position, r=APERTURE_RADIUS)
@@ -77,9 +77,9 @@ def solve_astrometry(filename):
             publicly_visible="n",
             allow_commercial_use="n",
             solve_timeout=300,
-            scale_units='arcsecperpix',  # Add if you know the scale
-            scale_type='ev',              # Estimate bounds
-            scale_est=0.384,                # Example: 0.5"/pixel
+            scale_units='arcsecperpix',  # EDIT FOR MDM 
+            scale_type='ev',              # Bound estimate (EDIT FOR MDM)
+            scale_est=0.384,                # Example: 0.5"/pixel (EDIT FOR MDM)
             scale_err=20                   # 20% uncertainty
         )
         if wcs_header:
@@ -145,7 +145,7 @@ def plot_lightcurve(times, fluxes, config):
     plt.xlabel('Hours from First Observation')
     plt.ylabel('Normalized Flux')
     plt.xlim(0, 1.28)
-    plt.ylim(-40, 40)
+    plt.ylim(-40, 40) 
     plt.grid(True, alpha=0.3)
     plt.legend()
     
